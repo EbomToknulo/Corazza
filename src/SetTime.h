@@ -55,3 +55,16 @@ void getTimeSerial()
     Serial.print(":");
     Serial.println(myRTC.getSecond(), DEC);
 }
+
+/*
+myRTC.setClockMode(false);  // set to 24h
+        //setClockMode(true); // set to 12h
+
+        myRTC.setYear(year);
+        myRTC.setMonth(month);
+        myRTC.setDate(date);
+        myRTC.setDoW(dOW);
+        myRTC.setHour(hour);
+        myRTC.setMinute(minute);
+        myRTC.setSecond(second);
+        */

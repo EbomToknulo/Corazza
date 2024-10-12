@@ -1,15 +1,15 @@
+#include <Arduino.h>
+
 int mesPrev = 0;
 int signalPrev = 0;
+bool menuFlag = false;
+bool journalFlag = false;
+bool longPress = false;
+uint8_t jid = 0;
+uint8_t journalLenght = 0;
+uint64_t journalTime = 0;
+
 #define journallen 20
-
-#include <Arduino.h>
-#include <Wire.h>
-#include <AlarmsArray.h>
-#include <SetTime.h>
-#include <LCD.h>
-#include <Logger.h>
-#include <Menu.h>
-
 // left button
 #define but1 10
 // right button
@@ -17,6 +17,14 @@ int signalPrev = 0;
 // menu button
 #define but3 12
 #define journalTimer 2000
+#define menuTimer 2000
+
+#include <Wire.h>
+#include <AlarmsArray.h>
+#include <SetTime.h>
+#include <Logger.h>
+#include <LCD.h>
+#include <Menu.h>
 
 /*
 D2-D9 входа на которые подключены оптроны
@@ -25,14 +33,7 @@ A0-A1 это программный UART для OpenLog
 A4-A5 стандартно SDA SCL
 */
 int signal = 0;
-bool menuFlag = false;
-bool journalFlag = false;
-bool longPress = false;
-uint8_t jid = 0;
-
 // uint64_t currentTime = 0;
-uint64_t journalTime = 0;
-
 void signaltest();
 int ReadPLC();
 void journalCtrl();
@@ -63,6 +64,7 @@ void setup()
   signalPrev = ReadPLC();
   // ReadPLC();
   // currentTime = millis();
+  getReadyScreen();
 }
 
 void loop()
@@ -72,11 +74,12 @@ void loop()
   signal = ReadPLC();
   if ((signal != 0) & (signal != signalPrev))
   {
+    /*
     Serial.println("+++signal++++++++++++++");
     Serial.println(signal);
     Serial.println("+++++prev++++++++++++");
     Serial.println(signalPrev);
-
+*/
     // значит сообщение стало другим пишем сообщение в лог и на экран
     if (!journalFlag)
       loadScreen(signal);
@@ -85,12 +88,18 @@ void loop()
     signalPrev = signal;
   }
 
+
   journalCtrl();
   journalLoop();
 
-  // signaltest();
+  if (!journalFlag)
+    signaltest();
 }
 
+/*
+Тестовый метод, для тестирования работы.
+Формирует журнал передавая случайные числа
+*/
 void signaltest()
 {
   String tmp;
@@ -98,6 +107,7 @@ void signaltest()
   int r = random(37);
   tmp = getMes(r);
   loadScreen(r);
+  writeShortLog(r);
   Serial.println(tmp);
   delay(5000);
 }
@@ -123,85 +133,12 @@ int ReadPLC()
   portb = portb << 6;
   res |= portd;
   res |= portb;
-  // теперь нужна инверсия.
+  // теперь нужна инверсия. потому что физически сигналы инвертированы из-за оптронов
   res ^= B11111111;
 
-  // Serial.println(res);
-  // Serial.println("+++++++++++++++++");
-
   temp = (int)res;
-  // Serial.println(temp);
-  // Serial.println("================");
+
   if (temp > length)
     temp = 0;
   return temp;
-}
-
-void journalCtrl()
-{
-  if (digitalRead(but3))
-  {
-    // инициализация при нажатии на кнопку
-    if (!longPress)
-    {
-      journalTime = millis();
-      longPress = true;
-    }
-    else
-    {
-      if (millis() >= (journalTime + journalTimer))
-      {
-        // время вышло, запускаем журнал
-        longPress = false;
-        journalFlag = !journalFlag;
-        if (journalFlag)
-          getJournalScreen();
-        else
-        {
-          goBacktoLoop(0);
-        }
-      }
-    }
-  }
-  else
-  {
-    if (longPress)
-      longPress = false;
-  }
-}
-
-void journalLoop()
-{
-  if (journalFlag)
-  {
-    if (digitalRead(but1))
-    {
-      jid++;
-      delay(500);
-      if (jid > (journallen - 1))
-      {
-        jid = (journallen - 1);
-      }
-      goBacktoLoop(jid);
-    }
-    if (digitalRead(but2))
-    {
-      if (jid <= (0))
-      {
-        jid = 0;
-      }
-      else
-        jid--;
-      delay(500);
-      goBacktoLoop(jid);
-    }
-  }
-}
-
-void goBacktoLoop(uint8_t id)
-{
-  lcd.clear();
-  loadScreen(messageLog[id], 0);
-  if (id < (journallen - 1))
-    loadScreen(messageLog[id + 1], 1);
 }
