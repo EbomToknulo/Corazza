@@ -3,7 +3,7 @@
 const char alarm1[] PROGMEM = "1.FR77 Emergency";
 const char alarm2[] PROGMEM = "2.FR77 Protection guards";
 const char alarm3[] PROGMEM = "3.IC76 Emergency";
-const char alarm4[] PROGMEM = "2.IC76 Protection guards";
+const char alarm4[] PROGMEM = "4.IC76 Protection guards";
 const char alarm5[] PROGMEM = "5.Torque sensor";
 const char alarm6[] PROGMEM = "6.Pressure plate sensor";
 const char alarm7[] PROGMEM = "7.Air missing";
@@ -38,8 +38,8 @@ const char alarm35[] PROGMEM = "35.Lable control";
 const char alarm36[] PROGMEM = "36.IC76 outfeed motor in failure";
 const char alarm37[] PROGMEM = "37.Quality control - fault in box";
 // 37
-const int length = 37;
-char buffer[35]; 
+static const int length = 37;
+char buffer[35];
 // самое длинное сообщение это 34 знака
 const char *const Message[] PROGMEM = {
     alarm1,
@@ -81,7 +81,7 @@ const char *const Message[] PROGMEM = {
     alarm37};
 
 /*
-{1, "1.FR77 Emergency"},
+    {1, "1.FR77 Emergency"},
     {2, "2.FR77 Protection guards"},
     {3, "3.IC76 Emergency"},
     {4, "2.IC76 Protection guards"},
@@ -121,23 +121,9 @@ const char *const Message[] PROGMEM = {
 */
 String getMes(int id)
 {
-  String res = "";
-  Serial.println("=======================================");
-  for (int i = 0; i < length; i++)
-  {
-     strcpy_P(buffer, (char *)pgm_read_ptr(&(Message[i])));
-    Serial.print("buf= ");
-   Serial.println(buffer);
-   // Serial.println(Message[i]);
+  if (id <= length)
+    // String res = "";
+    strcpy_P(buffer, (char *)pgm_read_ptr(&(Message[id-1])));
 
-    /*if (Message[i].id == id)
-    {
-      Serial.println(i + 1);
-     // res = Message[i].myStr;
-     // Serial.println(Message[i].myStr);
-      //Serial.println(Message[i].id);
-    }
-    */
-  }
-  return res;
+  return buffer;
 }
