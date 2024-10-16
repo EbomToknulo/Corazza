@@ -1,7 +1,3 @@
-#include <LiquidCrystal_I2C.h>
-
-LiquidCrystal_I2C lcd(0x27, 40, 2);
-
 void getUpScreen();
 String dateTime(bool datetime);
 void loadScreen(int str, byte row);
@@ -106,4 +102,12 @@ void getJournalScreen(bool empty)
         delay(5000);
         lcd.clear();
     }
+}
+
+void getMenuScreen()
+{
+    lcd.clear();
+    lcd.setCursor(18, 0);
+    lcd.print("MENU");
+    delay(4000);
 }

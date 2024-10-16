@@ -1,3 +1,4 @@
 northernwidget/DS3231@^1.1.2
-forntoh/LcdMenu@^5.0.0
+madleech/Button@^1.0.0
 marcoschwartz/LiquidCrystal_I2C@^1.1.4
+forntoh/LcdMenu@^5.0.0

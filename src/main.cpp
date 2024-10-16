@@ -1,10 +1,25 @@
 #include <Arduino.h>
 
+#include <Button.h>
+#include <ItemToggle.h>
+#include <ItemInput.h>
+#include <LcdMenu.h>
+#include <ItemSubMenu.h>
+#include <ItemBack.h>
+#include <ItemCommand.h>
+#include <ItemIntRange.h>
+#include <MenuScreen.h>
+#include <LiquidCrystal_I2C.h>
+#include <display/LiquidCrystal_I2CAdapter.h>
+#include <input/ButtonAdapter.h>
+#include <renderer/CharacterDisplayRenderer.h>
+
 int mesPrev = 0;
 int signalPrev = 0;
 bool menuFlag = false;
 bool journalFlag = false;
 bool longPress = false;
+bool debug = true;
 uint8_t jid = 0;
 uint8_t journalLenght = 0;
 uint64_t journalTime = 0;
@@ -16,8 +31,25 @@ uint64_t journalTime = 0;
 #define but2 11
 // menu button
 #define but3 12
+// back button
+#define but4 A2
+
 #define journalTimer 2000
 #define menuTimer 2000
+
+LiquidCrystal_I2C lcd(0x27, 40, 2);
+LiquidCrystal_I2CAdapter lcdAdapter(&lcd);
+CharacterDisplayRenderer renderer(&lcdAdapter, 40, 2);
+LcdMenu menu(renderer);
+
+Button upBtn(but1);
+ButtonAdapter upBtnA(&menu, &upBtn, UP);
+Button downBtn(but2);
+ButtonAdapter downBtnA(&menu, &downBtn, DOWN);
+Button enterBtn(but3);
+ButtonAdapter enterBtnA(&menu, &enterBtn, ENTER);
+Button backButton(but4);
+ButtonAdapter backButtonA(&menu, &backButton, BACK);
 
 #include <Wire.h>
 #include <AlarmsArray.h>
@@ -58,42 +90,55 @@ void setup()
   pinMode(but1, INPUT);
   pinMode(but2, INPUT);
   pinMode(but3, INPUT);
+  pinMode(but4, INPUT);
 
   Serial.begin(9600);
+  signaltest();
+  signaltest();
+  signaltest();
+  signaltest();
+  signaltest();
+  signaltest();
+  signaltest();
+  signaltest();
+  signaltest();
+  signaltest();
   // формируем предыдущее сообщение
   signalPrev = ReadPLC();
   // ReadPLC();
   // currentTime = millis();
   getReadyScreen();
+  // getTimeSerial();
 }
 
 void loop()
 {
-  // ReadPLC();
-  // signal = 0;
-  signal = ReadPLC();
-  if ((signal != 0) & (signal != signalPrev))
+  if (!menuFlag)
   {
-    /*
-    Serial.println("+++signal++++++++++++++");
-    Serial.println(signal);
-    Serial.println("+++++prev++++++++++++");
-    Serial.println(signalPrev);
-*/
-    // значит сообщение стало другим пишем сообщение в лог и на экран
-    if (!journalFlag)
-      loadScreen(signal);
-    writeLog(signal);
-    writeShortLog(signal);
-    signalPrev = signal;
+    // ReadPLC();
+    // signal = 0;
+    signal = ReadPLC();
+    if ((signal != 0) & (signal != signalPrev))
+    {
+      // значит сообщение стало другим пишем сообщение в лог и на экран
+      if (!journalFlag)
+        loadScreen(signal);
+      writeLog(signal);
+      writeShortLog(signal);
+      signalPrev = signal;
+    }
+
+    journalCtrl();
+    journalLoop();
+
+    //if (!journalFlag)
+     // signaltest();
   }
+  else
+    loopMenu();
 
-
-  journalCtrl();
-  journalLoop();
-
-  if (!journalFlag)
-    signaltest();
+  if (debug)
+    Serial.print("m");
 }
 
 /*
@@ -106,10 +151,10 @@ void signaltest()
 
   int r = random(37);
   tmp = getMes(r);
-  loadScreen(r);
+  //loadScreen(r);
   writeShortLog(r);
   Serial.println(tmp);
-  delay(5000);
+  //delay(5000);
 }
 
 /*Основной метод для чтения телеграммы от ПЛК
