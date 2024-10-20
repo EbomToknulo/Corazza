@@ -2,7 +2,7 @@
 
 static int messageLog[journallen];
 
-static const int RXPin = 14U, TXPin = 15U;
+static const int RXPin = A1, TXPin = A0;
 
 SoftwareSerial ss(RXPin, TXPin);
 
@@ -13,13 +13,20 @@ void messageArrayTest();
 void initLog()
 {
     ss.begin(9600);
+    String buf;
+    buf += getTimeStr(true);
+    buf += " ";
+    buf += getDateStr(true);
+    ss.println(buf);
 }
 
 void writeLog(int str)
 {
     String buf;
-    buf = getMes(str);
+   // buf += (String)str;
     buf += logDate();
+    buf = getMes(str);
+    ss.println(buf);
 }
 
 void writeShortLog(int str)
@@ -56,9 +63,13 @@ uint8_t arrayLength()
         if (messageLog[i] != 0)
             tmp++;
     }
-    Serial.print("lenght array= ");
-    Serial.println(tmp);
-    messageArrayTest();
+
+    if (debug)
+    {
+        Serial.print("lenght array= ");
+        Serial.println(tmp);
+        messageArrayTest();
+    }
     return tmp;
 }
 

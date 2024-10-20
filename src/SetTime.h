@@ -9,7 +9,7 @@ void getTimeSerial();
 
 void initRTC()
 {
-    getTimeSerial();
+    if (debug) getTimeSerial();
 }
 
 String getDateStr(bool longtime)

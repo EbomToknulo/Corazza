@@ -1,6 +1,7 @@
 void goBacktoLoop(uint8_t id);
 void journalCtrl();
 void journalLoop();
+void journalRefresh();
 void callbackInt(int value);
 void callDay(int value);
 void callMonth(int value);
@@ -10,13 +11,29 @@ void callM(int value);
 void callS(int value);
 void callExit();
 void callJournal();
+void toggleBacklight(bool isOn);
 
 uint8_t date;
 uint8_t month;
 uint8_t year;
 
 extern MenuScreen *settingsScreenTime;
-// extern MenuScreen *settingsScreenDate;
+
+MENU_SCREEN(mainScreen, mainItems,
+    ITEM_COMMAND("Journal", callJournal),
+    ITEM_TOGGLE("Backlight", toggleBacklight),
+    ITEM_SUBMENU("SetTime", settingsScreenTime),
+    ITEM_COMMAND("Exit", callExit)
+    );
+
+MENU_SCREEN(settingsScreenTime, settingsItems,
+            ITEM_INT_RANGE("Hour", 0, 23, 15, callH, (const char *)"hh"),
+            ITEM_INT_RANGE("Minute>", 0, 59, 15, callM, (const char *)"mm"),
+            ITEM_INT_RANGE("Seconds>", 0, 59, 15, callS, (const char *)"ss"),
+            ITEM_INT_RANGE("Day", 1, 31, 1, callDay, (const char *)"dd"),
+            ITEM_INT_RANGE("Month>", 1, 12, 1, callMonth, (const char *)"mm"),
+            ITEM_INT_RANGE("Year>", 0, 50, 24, callYear, (const char *)"yy"),
+            ITEM_BACK());
 
 /*Изначально писал только функцию под отображение журнала,
 потом прикрутил меню с редактированием времени, название оставил прежнее.
@@ -41,26 +58,16 @@ void journalCtrl()
             {
                 // время вышло, запускаем журнал
                 longPress = false;
-                // journalFlag = !journalFlag;
                 menuFlag = !menuFlag;
                 if (debug)
                     Serial.println("menu act");
                 if (menuFlag)
                 {
                     getMenuScreen();
+                   // journalRefresh();
                     menu.reset();
                     menu.show();
                     menu.refresh();
-                    /*
-                    journalLenght = arrayLength();
-                    if (journalLenght == 0)
-                    {
-
-                            journalFlag = false;
-                    }
-                    else
-                        getJournalScreen(false);
-                        */
                 }
                 else
                 {
@@ -123,27 +130,6 @@ void goBacktoLoop(uint8_t id)
         loadScreen(messageLog[id + 1], 1);
 }
 
-// Declare the call back function
-void toggleBacklight(bool isOn);
-
-// clang-format off
-MENU_SCREEN(mainScreen, mainItems,
-    ITEM_COMMAND("Journal", callJournal),
-    ITEM_TOGGLE("Backlight", toggleBacklight),
-    ITEM_SUBMENU("SetTime", settingsScreenTime),
-    ITEM_COMMAND("Exit", callExit)
-    );
-
-// Create submenu and precise its parent
-MENU_SCREEN(settingsScreenTime, settingsItems,
-            ITEM_INT_RANGE("Hour", 0, 23, 15, callH, (const char *)"hh"),
-            ITEM_INT_RANGE("Minute>", 0, 59, 15, callM, (const char *)"mm"),
-            ITEM_INT_RANGE("Seconds>", 0, 59, 15, callS, (const char *)"ss"),
-            ITEM_INT_RANGE("Day", 1, 31, 1, callDay, (const char *)"dd"),
-            ITEM_INT_RANGE("Month>", 1, 12, 1, callMonth, (const char *)"mm"),
-            ITEM_INT_RANGE("Year>", 0, 50, 24, callYear, (const char *)"yy"),
-            ITEM_BACK());
-
 void initMenu()
 {
     upBtn.begin();
@@ -161,7 +147,6 @@ void loopMenu()
     downBtnA.observe();
     enterBtnA.observe();
     backButtonA.observe();
-    if(debug) Serial.print("l");
 }
 
 void toggleBacklight(bool isOn)
@@ -201,16 +186,15 @@ void callS(int value)
 
 void callExit()
 {
-//menu.reset();
  menu.hide();
  menuFlag=false;
  if (debug) Serial.println("exit");
+ goBacktoLoop(0);
 }
 
 void callJournal()
 {
    journalLenght = arrayLength();
-//menu.reset();
     menu.hide();
     menuFlag=false;
     journalFlag=true;

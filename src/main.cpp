@@ -1,5 +1,4 @@
 #include <Arduino.h>
-
 #include <Button.h>
 #include <ItemToggle.h>
 #include <ItemInput.h>
@@ -19,7 +18,8 @@ int signalPrev = 0;
 bool menuFlag = false;
 bool journalFlag = false;
 bool longPress = false;
-bool debug = true;
+bool debug = false;
+int signal = 0;
 uint8_t jid = 0;
 uint8_t journalLenght = 0;
 uint64_t journalTime = 0;
@@ -64,8 +64,8 @@ D10-D12 - входа для кнопок
 A0-A1 это программный UART для OpenLog
 A4-A5 стандартно SDA SCL
 */
-int signal = 0;
-// uint64_t currentTime = 0;
+
+
 void signaltest();
 int ReadPLC();
 void journalCtrl();
@@ -80,7 +80,7 @@ void setup()
   //  DDRD = DDRB | B00000000;
   //  DDRB = DDRB | B00000000;
 
-  randomSeed(A2);
+  if (debug) randomSeed(A2);
 
   initRTC();
   initLCD();
@@ -93,22 +93,22 @@ void setup()
   pinMode(but4, INPUT);
 
   Serial.begin(9600);
-  signaltest();
-  signaltest();
-  signaltest();
-  signaltest();
-  signaltest();
-  signaltest();
-  signaltest();
-  signaltest();
-  signaltest();
-  signaltest();
+  if (debug)
+  {
+    signaltest();
+    signaltest();
+    signaltest();
+    signaltest();
+    signaltest();
+    signaltest();
+    signaltest();
+    signaltest();
+    signaltest();
+    signaltest();
+  }
   // формируем предыдущее сообщение
   signalPrev = ReadPLC();
-  // ReadPLC();
-  // currentTime = millis();
   getReadyScreen();
-  // getTimeSerial();
 }
 
 void loop()
@@ -130,15 +130,9 @@ void loop()
 
     journalCtrl();
     journalLoop();
-
-    //if (!journalFlag)
-     // signaltest();
   }
   else
     loopMenu();
-
-  if (debug)
-    Serial.print("m");
 }
 
 /*
@@ -151,10 +145,10 @@ void signaltest()
 
   int r = random(37);
   tmp = getMes(r);
-  //loadScreen(r);
+  // loadScreen(r);
   writeShortLog(r);
   Serial.println(tmp);
-  //delay(5000);
+  // delay(5000);
 }
 
 /*Основной метод для чтения телеграммы от ПЛК
