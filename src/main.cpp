@@ -65,7 +65,6 @@ A0-A1 это программный UART для OpenLog
 A4-A5 стандартно SDA SCL
 */
 
-
 void signaltest();
 int ReadPLC();
 void journalCtrl();
@@ -80,7 +79,8 @@ void setup()
   //  DDRD = DDRB | B00000000;
   //  DDRB = DDRB | B00000000;
 
-  if (debug) randomSeed(A2);
+  if (debug)
+    randomSeed(A2);
 
   initRTC();
   initLCD();
@@ -154,6 +154,7 @@ void signaltest()
 /*Основной метод для чтения телеграммы от ПЛК
 стоит учесть что все входы подтянуты резисторами к + питания
 поэтому потом их надо инвертировать
+UPD на сапал 1 почему то постоянно мигает выход 0.6. Видимо пытались сделать строб для панели.
 */
 int ReadPLC()
 {
@@ -174,6 +175,7 @@ int ReadPLC()
   res |= portb;
   // теперь нужна инверсия. потому что физически сигналы инвертированы из-за оптронов
   res ^= B11111111;
+  res &= B10111111;
 
   temp = (int)res;
 
